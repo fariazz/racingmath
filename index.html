@@ -1,0 +1,99 @@
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <script src='lib/quintus.js'></script>
+        <script src='lib/quintus_sprites.js'></script>
+        <script src='lib/quintus_scenes.js'></script>
+        <script src='lib/quintus_input.js'></script>
+        <script src='lib/quintus_anim.js'></script>
+        <script src='lib/quintus_2d.js'></script>
+        <script src='lib/quintus_touch.js'></script>
+        <script src='lib/quintus_ui.js'></script>
+    </head>
+    <body>
+        <script>
+            var Q = Quintus()
+        .include("Sprites, Scenes, Input, 2D, Touch, UI")
+        .setup({
+            width: 320,
+            height: 420
+        })
+        .controls().touch()
+        
+        Q.TileLayer.extend("RaceTileLayer", {
+            collidableTile: function(tileNum) {
+                return tileNum > 0 && tileNum != 3;
+            },
+        });
+    
+        Q.Sprite.extend("Player",{
+            init: function(p) {
+              this._super(p, { sheet: "player", x: 160, y: 112});
+              this.add('2d, platformerControls');
+
+              this.on("hit.sprite",function(collision) {
+                  if(collision.obj.isA("Girl")) {
+                    Q.stageScene("endGame",1, { label: "You Won!" }); 
+                    this.destroy();
+                  }
+              });
+            },
+        });
+
+        Q.Sprite.extend("Girl", {
+            init: function(p) {
+              this._super(p, { sheet: 'girl' });                            
+            }
+        });
+        
+        Q.MovingSprite.extend("Rival", {
+            init: function(p) {
+              this._super(p, {});              
+            },
+        });
+
+        Q.scene("level1",function(stage) {
+          stage.collisionLayer(new Q.RaceTileLayer({ dataAsset: 'level.json', sheet: 'tiles' }));
+          var player = stage.insert(new Q.Player());
+
+          stage.add("viewport").follow(player);
+          
+          //rivals
+          stage.insert(new Q.Rival({ x: 50, y: 112, sheet:'bluerival', vx: 100*Math.random()}));
+          stage.insert(new Q.Rival({ x: 60, y: 112, sheet:'purplerival', vx: 100*Math.random() }));
+          stage.insert(new Q.Rival({ x: 55, y: 112, sheet:'greenrival', vx: 100*Math.random() }));
+          
+          //girl
+          stage.insert(new Q.Girl({ x: 355, y: 112, sheet:'girl'}));
+        });
+
+        Q.scene('endGame',function(stage) {
+          var box = stage.insert(new Q.UI.Container({
+            x: Q.width/2, y: Q.height/2, fill: "rgba(0,0,0,0.5)"
+          }));
+
+          var button = box.insert(new Q.UI.Button({ x: 0, y: 0, fill: "#CCCCCC",
+                                                   label: "Play Again" }))         
+          var label = box.insert(new Q.UI.Text({x:10, y: -10 - button.p.h, 
+                                                label: stage.options.label }));
+          button.on("click",function() {
+            Q.clearStages();
+            Q.stageScene('level1');
+          });
+          box.fit(20);
+        });
+
+        Q.load("sprites.png, sprites.json, level.json, tiles.png", function() {
+          Q.sheet("tiles","tiles.png", { tilew: 32, tileh: 32 });
+          Q.compileSheets("sprites.png","sprites.json");
+          Q.stageScene("level1");
+        });
+        </script>
+    </body>
+</html>
