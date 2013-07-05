@@ -18,23 +18,28 @@ and open the template in the editor.
     </head>
     <body>
         <script>
-            var Q = Quintus()
-        .include("Sprites, Scenes, Input, 2D, Touch, UI")
-        .setup({
-            width: 320,
-            height: 420
-        })
-        .controls().touch()
+        var Q = Quintus()
+            .include("Sprites, Scenes, Input, 2D, Touch, UI")
+            .setup({
+                width: 320,
+                height: 480
+            })
+            .controls().touch()
         
-        Q.TileLayer.extend("RaceTileLayer", {
-            collidableTile: function(tileNum) {
-                return tileNum > 0 && tileNum != 3;
-            },
-        });
-    
+        //values for collision detection
+        var SPRITE_NONE = 0;
+        var SPRITE_RACER = 1;
+        var SPRITE_OTHER = 2; 
+        
         Q.Sprite.extend("Player",{
             init: function(p) {
-              this._super(p, { sheet: "player", x: 160, y: 112});
+              this._super(p, {
+                  sheet: "player", 
+                  x: 160, 
+                  y: 112,
+                  type: SPRITE_RACER,
+                  collisionMask: SPRITE_OTHER
+              });
               this.add('2d, platformerControls');
 
               this.on("hit.sprite",function(collision) {
@@ -48,21 +53,28 @@ and open the template in the editor.
 
         Q.Sprite.extend("Girl", {
             init: function(p) {
-              this._super(p, { sheet: 'girl' });                            
+              this._super(p, { 
+                  sheet: 'girl',
+                  type: SPRITE_OTHER,
+                  collisionMask: SPRITE_OTHER
+              });
+              this.add('2d');
             }
         });
         
         Q.MovingSprite.extend("Rival", {
             init: function(p) {
-              this._super(p, {});              
+              this._super(p, {
+                  type: SPRITE_RACER,
+                  collisionMask: SPRITE_OTHER
+              });
+              this.add('2d');
             },
         });
 
         Q.scene("level1",function(stage) {
-          stage.collisionLayer(new Q.RaceTileLayer({ dataAsset: 'level.json', sheet: 'tiles' }));
-          var player = stage.insert(new Q.Player());
-
-          stage.add("viewport").follow(player);
+          stage.collisionLayer(new Q.TileLayer({ dataAsset: 'level_collision.json', sheet: 'tiles', type: SPRITE_OTHER }));
+          stage.insert(new Q.TileLayer({ dataAsset: 'level_background.json', sheet: 'tiles', type: SPRITE_NONE }));
           
           //rivals
           stage.insert(new Q.Rival({ x: 50, y: 112, sheet:'bluerival', vx: 100*Math.random()}));
@@ -70,7 +82,61 @@ and open the template in the editor.
           stage.insert(new Q.Rival({ x: 55, y: 112, sheet:'greenrival', vx: 100*Math.random() }));
           
           //girl
-          stage.insert(new Q.Girl({ x: 355, y: 112, sheet:'girl'}));
+          var girl = new Q.Girl({ x: 355, y: 112, sheet:'girl'});
+          stage.insert(girl);
+          
+          //player
+          var player = stage.insert(new Q.Player());
+          stage.add("viewport").follow(player);
+          
+          
+        });
+        
+        //answer button
+        Q.UI.AnswButton = Q.UI.Button.extend('UI.AnswButton', {
+            init: function(p) {
+                this._super(Q._defaults(p, {
+                    fill: "#FFFFFF",
+                    border: 2,
+                    shadow: 3,
+                    shadowColor: "rgba(0,0,0,0.5)",
+                }),                     
+                function() {
+                    this.p.label = "Pressed";
+                }
+                );
+            }
+        });
+        
+        
+        Q.scene("calculations",function(stage) {
+            
+            //current question
+            
+            
+            //buttons
+            var i;
+            for(i=1;i<10;i++) {
+                (function(i) {
+                    stage.insert(
+                        new Q.UI.AnswButton({
+                            label: i+'',
+                            y: 250+Math.ceil(i/3)*50,
+                            x: 30+parseInt((i+2)%3)*50,                            
+                            }
+                        )
+                    );
+                })(i);
+                stage.insert(new Q.UI.AnswButton({
+                            label: '0',
+                            y: 250+4*50,
+                            x: 30+1*50,                           
+                            }
+                        ));
+            }
+            
+          
+          
         });
 
         Q.scene('endGame',function(stage) {
@@ -83,16 +149,16 @@ and open the template in the editor.
           var label = box.insert(new Q.UI.Text({x:10, y: -10 - button.p.h, 
                                                 label: stage.options.label }));
           button.on("click",function() {
-            Q.clearStages();
-            Q.stageScene('level1');
+            window.location.reload();
           });
           box.fit(20);
         });
 
-        Q.load("sprites.png, sprites.json, level.json, tiles.png", function() {
+        Q.load("sprites.png, sprites.json, level_collision.json, level_background.json, tiles.png", function() {
           Q.sheet("tiles","tiles.png", { tilew: 32, tileh: 32 });
           Q.compileSheets("sprites.png","sprites.json");
           Q.stageScene("level1");
+          Q.stageScene("calculations",1);
         });
         </script>
     </body>
