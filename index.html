@@ -100,9 +100,22 @@ and open the template in the editor.
                     border: 2,
                     shadow: 3,
                     shadowColor: "rgba(0,0,0,0.5)",
+                    w: 40,
+                    h: 40
                 }),                     
                 function() {
-                    this.p.label = "Pressed";
+                    var currAnsw;
+                    if(this.p.answerLabel.p.label === '') {
+                        currAnsw = 0;
+                    }
+                    else {
+                        currAnsw = parseInt(this.p.answerLabel.p.label);
+                    }
+                    
+                    if(currAnsw < 1000000000) {
+                        this.p.answerLabel.p.label = ""+(currAnsw*10+parseInt(this.p.label));
+                    }
+                        
                 }
                 );
             }
@@ -112,7 +125,58 @@ and open the template in the editor.
         Q.scene("calculations",function(stage) {
             
             //current question
+            var qContainer = stage.insert(new Q.UI.Container({
+                fill: "gray",
+                x: 221,
+                y: 325,
+                border: 2,
+                shadow: 3,
+                shadowColor: "rgba(0,0,0,0.5)",
+                w: 140,
+                h: 50
+                })
+            );
             
+            var question = stage.insert(new Q.UI.Text({ 
+                    label: "300 x 6000",
+                    color: "white",
+                    x: 0,
+                    y: 0
+                  }),qContainer);
+            
+            //answer area
+            var aContainer = stage.insert(new Q.UI.Container({
+                fill: "#438700",
+                x: 221,
+                y: 385,
+                border: 2,
+                shadow: 3,
+                shadowColor: "rgba(0,0,0,0.5)",
+                w: 140,
+                h: 50
+                })
+            );
+            
+            var answer = stage.insert(new Q.UI.Text({ 
+                    label: "",
+                    color: "white",
+                    x: 0,
+                    y: 0
+                  }),aContainer);
+            
+            //submit answer
+            var aButton = stage.insert(new Q.UI.Button({
+                fill: "white",
+                label: "Enter",
+                x: 221,
+                y: 445,
+                border: 2,
+                shadow: 3,
+                shadowColor: "rgba(0,0,0,0.5)",
+                w: 140,
+                h: 50
+                })
+            );
             
             //buttons
             var i;
@@ -121,20 +185,22 @@ and open the template in the editor.
                     stage.insert(
                         new Q.UI.AnswButton({
                             label: i+'',
-                            y: 250+Math.ceil(i/3)*50,
-                            x: 30+parseInt((i+2)%3)*50,                            
+                            y: 275+Math.ceil(i/3)*45,
+                            x: 30+parseInt((i+2)%3)*45,
+                            answerLabel: answer
                             }
                         )
                     );
                 })(i);
                 stage.insert(new Q.UI.AnswButton({
                             label: '0',
-                            y: 250+4*50,
-                            x: 30+1*50,                           
+                            y: 275+4*45,
+                            x: 30+45,     
+                            answerLabel: answer
                             }
                         ));
             }
-            
+                      
           
           
         });
