@@ -26,6 +26,9 @@ and open the template in the editor.
             })
             .controls().touch()
         
+        //configuration for math operations
+        Q.state.set({ operations_min: 0, operations_max: 10 });
+        
         //values for collision detection
         var SPRITE_NONE = 0;
         var SPRITE_RACER = 1;
@@ -34,13 +37,11 @@ and open the template in the editor.
         Q.Sprite.extend("Player",{
             init: function(p) {
               this._super(p, {
-                  sheet: "player", 
-                  x: 160, 
-                  y: 112,
+                  sheet: "player",                   
                   type: SPRITE_RACER,
                   collisionMask: SPRITE_OTHER
               });
-              this.add('2d, platformerControls');
+              this.add('2d');
 
               this.on("hit.sprite",function(collision) {
                   if(collision.obj.isA("Girl")) {
@@ -69,6 +70,13 @@ and open the template in the editor.
                   collisionMask: SPRITE_OTHER
               });
               this.add('2d');
+              
+              this.on("hit.sprite",function(collision) {
+                  if(collision.obj.isA("Girl")) {
+                    Q.stageScene("endGame",1, { label: "You Lost!" }); 
+                    this.destroy();
+                  }
+              });
             },
         });
 
@@ -77,16 +85,16 @@ and open the template in the editor.
           stage.insert(new Q.TileLayer({ dataAsset: 'level_background.json', sheet: 'tiles', type: SPRITE_NONE }));
           
           //rivals
-          stage.insert(new Q.Rival({ x: 50, y: 112, sheet:'bluerival', vx: 100*Math.random()}));
-          stage.insert(new Q.Rival({ x: 60, y: 112, sheet:'purplerival', vx: 100*Math.random() }));
-          stage.insert(new Q.Rival({ x: 55, y: 112, sheet:'greenrival', vx: 100*Math.random() }));
+          stage.insert(new Q.Rival({ x: 160, y: 112, sheet:'bluerival', vx: 40*Math.random()}));
+          stage.insert(new Q.Rival({ x: 160, y: 112, sheet:'purplerival', vx: 40*Math.random() }));
+          stage.insert(new Q.Rival({ x: 160, y: 112, sheet:'greenrival', vx: 40*Math.random() }));
           
           //girl
-          var girl = new Q.Girl({ x: 355, y: 112, sheet:'girl'});
+          var girl = new Q.Girl({ x: 2000, y: 112, sheet:'girl'});
           stage.insert(girl);
           
           //player
-          var player = stage.insert(new Q.Player());
+          var player = stage.insert(new Q.Player({x: 160, y: 112}));
           stage.add("viewport").follow(player);
           
           
@@ -121,6 +129,25 @@ and open the template in the editor.
             }
         });
         
+        //question area
+        Q.UI.Question = Q.UI.Text.extend('UI.QuestionArea', {
+            init: function() {
+                this._super({
+                    color: "white",
+                    x: 0,
+                    y: 0
+                });
+            },
+            generate: function() {
+                this.p.num1 = Math.floor(Math.random() * Q.state.get('operations_max')) + Q.state.get('operations_min');
+                this.p.num2 = Math.floor(Math.random() * Q.state.get('operations_max')) + Q.state.get('operations_min');
+                this.p.label = this.p.num1+'x'+this.p.num2;
+            },
+            getAnswer: function() {
+                return this.p.num1*this.p.num2;
+            }
+        });
+        
         
         Q.scene("calculations",function(stage) {
             
@@ -137,12 +164,9 @@ and open the template in the editor.
                 })
             );
             
-            var question = stage.insert(new Q.UI.Text({ 
-                    label: "300 x 6000",
-                    color: "white",
-                    x: 0,
-                    y: 0
-                  }),qContainer);
+            var question = stage.insert(new Q.UI.Question(),qContainer);
+            
+            question.generate();
             
             //answer area
             var aContainer = stage.insert(new Q.UI.Container({
@@ -175,6 +199,19 @@ and open the template in the editor.
                 shadowColor: "rgba(0,0,0,0.5)",
                 w: 140,
                 h: 50
+                },
+                function() {
+                    var isCorrect = parseInt(answer.p.label) == question.getAnswer();
+                    question.generate();
+                    answer.p.label = '';
+                    var player = Q("Player",0).first();
+                    
+                    if(isCorrect) {                        
+                        player.p.vx += 10;
+                    }
+                    else {
+                        player.p.vx = Math.max(0, player.p.vx - 5);
+                    }
                 })
             );
             
