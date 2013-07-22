@@ -1,9 +1,9 @@
-HTML5 Math Learning Game created by Pablo Farias Navarro
+HTML5 Math Learning Game using Quintus
+Pablo Farias Navarro
 @ZenvaTweets
 www.zenva.com
 www.gamedevacademy.org
 ==================================================
-License of the code: GLP 3.0    http://opensource.org/licenses/gpl-3.0.html
 
 Artwork licenses:
 

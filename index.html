@@ -5,6 +5,7 @@ and open the template in the editor.
 <!DOCTYPE html>
 <html>
     <head>
+        <meta name="viewport" content="width=device-width, user-scalable=no" />
         <title></title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <script src='lib/quintus.js'></script>
@@ -16,15 +17,14 @@ and open the template in the editor.
         <script src='lib/quintus_touch.js'></script>
         <script src='lib/quintus_ui.js'></script>
     </head>
-    <body>
+    <body style="background-color: black;">
         <script>
         var Q = Quintus()
             .include("Sprites, Scenes, Input, 2D, Touch, UI")
             .setup({
                 width: 320,
-                height: 480
-            })
-            .controls().touch()
+                height: 480                
+            }).touch();            
         
         //configuration for math operations
         Q.state.set({ operations_min: 0, operations_max: 10 });
@@ -42,13 +42,6 @@ and open the template in the editor.
                   collisionMask: SPRITE_OTHER
               });
               this.add('2d');
-
-              this.on("hit.sprite",function(collision) {
-                  if(collision.obj.isA("Girl")) {
-                    Q.stageScene("endGame",1, { label: "You Won!" }); 
-                    this.destroy();
-                  }
-              });
             },
         });
 
@@ -60,6 +53,17 @@ and open the template in the editor.
                   collisionMask: SPRITE_OTHER
               });
               this.add('2d');
+              
+              this.on("hit.sprite",function(collision) {
+                  if(collision.obj.isA("Player")) {
+                    Q.stageScene("endGame",1, { label: "You Won!" }); 
+                    this.destroy();
+                  }
+                  else if(collision.obj.isA("Rival")) {
+                    Q.stageScene("endGame",1, { label: "Game Over" }); 
+                    this.destroy();
+                  }
+              });
             }
         });
         
@@ -69,14 +73,7 @@ and open the template in the editor.
                   type: SPRITE_RACER,
                   collisionMask: SPRITE_OTHER
               });
-              this.add('2d');
-              
-              this.on("hit.sprite",function(collision) {
-                  if(collision.obj.isA("Girl")) {
-                    Q.stageScene("endGame",1, { label: "You Lost!" }); 
-                    this.destroy();
-                  }
-              });
+              this.add('2d');              
             },
         });
 
@@ -130,7 +127,7 @@ and open the template in the editor.
         });
         
         //question area
-        Q.UI.Question = Q.UI.Text.extend('UI.QuestionArea', {
+        Q.UI.QuestionArea = Q.UI.Text.extend('UI.QuestionArea', {
             init: function() {
                 this._super({
                     color: "white",
@@ -164,7 +161,7 @@ and open the template in the editor.
                 })
             );
             
-            var question = stage.insert(new Q.UI.Question(),qContainer);
+            var question = stage.insert(new Q.UI.QuestionArea(),qContainer);
             
             question.generate();
             
